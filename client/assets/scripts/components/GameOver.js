@@ -37,6 +37,9 @@ cc.Class({
         
         this._gameover.active = false;
         
+        var btnReady = this._gameover.getChildByName("btnReady");
+        cc.vv.utils.addClickEvent(btnReady,this.node,"GameOver","onBtnReadyClicked");     
+        
         this._pingju = this._gameover.getChildByName("pingju");
         this._win = this._gameover.getChildByName("win");
         this._lose = this._gameover.getChildByName("lose");

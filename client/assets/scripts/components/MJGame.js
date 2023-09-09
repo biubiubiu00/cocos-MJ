@@ -46,6 +46,7 @@ cc.Class({
         this.addComponent("ReplayCtrl");
         this.addComponent("PopupMgr");
         this.addComponent("HuanSanZhang");
+        this.addComponent("HuiPai");
         this.addComponent("ReConnect");
         this.addComponent("Voice");
         this.addComponent("UserInfoShow");
@@ -275,6 +276,7 @@ cc.Class({
                 var index = 13;
                 var sprite = self._myMJArr[index];
                 self.setSpriteFrameByMJID("M_",sprite,pai,index);
+                self.showHuiFlag(sprite, pai);
                 sprite.node.mjId = pai;                
             }
             else if(cc.vv.replayMgr.isReplay()){
@@ -442,6 +444,20 @@ cc.Class({
             self.prepareRoot.active = true;
             console.log('login_result');
         });
+    },
+
+    /**
+     * 判断是否显示会牌标记
+     */
+    showHuiFlag : function (sprite, pai) {
+        var realHuiPai = cc.vv.gameNetMgr.getRealHuiPai();
+        var huiFlag = sprite.node.getChildByName('huiFlag');
+        if (!huiFlag) return;
+        if (pai == realHuiPai) {
+            huiFlag.active = true;
+        } else {
+            huiFlag.active = false;
+        }
     },
     
     showChupai:function(){
@@ -799,6 +815,7 @@ cc.Class({
             sprite.node.mjId = mjid;
             sprite.node.y = 0;
             this.setSpriteFrameByMJID("M_",sprite,mjid);
+            this.showHuiFlag(sprite, mjid);
         }
         for(var i = 0; i < lackingNum; ++i){
             var sprite = this._myMJArr[i]; 

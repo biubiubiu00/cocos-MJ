@@ -180,6 +180,19 @@ cc.Class({
     
     sortMJ:function(mahjongs,dingque){
         var self = this;
+        let realHuiPai = cc.vv.gameNetMgr.getRealHuiPai();
+        var frontAry = [];
+        if (realHuiPai != null) {
+            for (var i = 0; i < mahjongs.length; i ++) {
+                var item = mahjongs[i];
+                if (item == realHuiPai) {
+                    var index = mahjongs.indexOf(item);
+                    frontAry = frontAry.concat(mahjongs.splice(index, 1));
+                    i --;
+                }
+            }
+        }
+       
         mahjongs.sort(function(a,b){
             if(dingque >= 0){
                 var t1 = self.getMahjongType(a);
@@ -195,6 +208,12 @@ cc.Class({
             }
             return a - b;
         });
+        // 传过来的是引用 只能对引用做操作
+        for (var i = 0; i < frontAry.length; i ++) {
+            var num = frontAry[i];
+            mahjongs.unshift(num)
+        }
+        console.log('mahjongs', mahjongs)
     },
     
     getSide:function(localIndex){

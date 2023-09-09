@@ -18,6 +18,7 @@ cc.Class({
         gamestate:"",
         isOver:false,
         dissoveData:null,
+        huipai: null
         // foo: {
         //    default: null,
         //    url: cc.Texture2D,  // optional, default is typeof default
@@ -39,6 +40,7 @@ cc.Class({
         this.isDingQueing = false;
         this.isHuanSanZhang = false;
         this.curaction = null;
+        this.huipai = null;
         for(var i = 0; i < this.seats.length; ++i){
             this.seats[i].holds = [];
             this.seats[i].folds = [];
@@ -56,6 +58,7 @@ cc.Class({
     
     clear:function(){
         this.dataEventHandler = null;
+        this.huipai = null;
         if(this.isOver == null){
             this.seats = null;
             this.roomId = null;
@@ -200,6 +203,7 @@ cc.Class({
             self.dingque = -1;
             self.isDingQueing = false;
             self.seats = null;
+            self.huipai = null;
         });
         
         cc.vv.net.addHandler("exit_notify_push",function(data){
@@ -218,6 +222,7 @@ cc.Class({
             self.dingque = -1;
             self.isDingQueing = false;
             self.seats = null;
+            self.huipai = null;
         });
                 
         cc.vv.net.addHandler("disconnect",function(data){
@@ -316,6 +321,13 @@ cc.Class({
             self.gamestate = "playing"; 
             self.dispatchEvent('game_playing');
         });
+
+        cc.vv.net.addHandler("set_huipai",function(data){
+            console.log('set_huipai', data); 
+            self.huipai = data;
+            self.dispatchEvent('set_huipai');
+        });
+        
         
         cc.vv.net.addHandler("game_sync_push",function(data){
             console.log("game_sync_push");
@@ -331,6 +343,7 @@ cc.Class({
             self.turn = data.turn;
             self.button = data.button;
             self.chupai = data.chuPai;
+            self.huipai = data.huipai;
             self.huanpaimethod = data.huanpaimethod;
             for(var i = 0; i < 4; ++i){
                 var seat = self.seats[i];
@@ -621,6 +634,32 @@ cc.Class({
                 return "angang";
             }
         }
+    },
+     
+    /**
+     * 获取真实的会牌 服务端会牌加1
+     * 上滚规则 不改变牌的类型
+     * 一共34种牌 0-8 9-17 18-26 27-29 30-33
+     * @returns 
+     */
+    getRealHuiPai : function () {
+        var huipai = this.huipai;
+        if (huipai == null) return null; 
+        var realHuiPai = null;
+        if (huipai == 8) {
+            realHuiPai = 0;
+        } else if (huipai == 17) {
+            realHuiPai = 9;
+        } else if (huipai == 26) {
+            realHuiPai = 18;
+        } else if (huipai == 29) {
+            realHuiPai = 27;
+        } else if (huipai == 33) {
+            realHuiPai = 30;
+        } else {
+            realHuiPai = huipai + 1;
+        }
+        return realHuiPai;
     },
     
     doGang:function(seatIndex,pai,gangtype,discardPai){
