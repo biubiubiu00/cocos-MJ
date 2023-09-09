@@ -11,6 +11,7 @@ cc.Class({
         lblNotice:cc.Label,
         joinGameWin:cc.Node,
         createRoomWin:cc.Node,
+        joinRoomWin:cc.Node,
         settingsWin:cc.Node,
         helpWin:cc.Node,
         xiaoxiWin:cc.Node,
@@ -218,6 +219,15 @@ cc.Class({
         }
         console.log("onCreateRoomClicked");
         this.createRoomWin.active = true;   
+    },
+
+    onJoinRoomClicked:function(){
+        // if(cc.vv.gameNetMgr.roomId != null){
+        //     cc.vv.alert.show("提示","房间已经创建!\n必须解散当前房间才能创建新的房间\n点击加入重新进入原有房间");
+        //     return;
+        // }
+        console.log("onJoinRoomClicked");
+        this.joinRoomWin.active = true;   
     },
     
     onBtnTaobaoClicked:function(){

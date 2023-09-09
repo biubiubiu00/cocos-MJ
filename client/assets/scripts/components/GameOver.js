@@ -235,11 +235,11 @@ cc.Class({
             seatView.zhuang.active = cc.vv.gameNetMgr.button == i;
             seatView.reason.string = actionArr.join("、");
             
-            //胡牌的玩家才有番
+            //胡牌的玩家才有番 新增杠番 所有玩家都显示服务端计算的番数
             var fan = 0;
-            if(hued){
+            // if(hued){
                 fan = userData.fan;
-            }
+            // }
             seatView.fan.string = fan + "番";
             
             //
