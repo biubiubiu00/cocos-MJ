@@ -300,6 +300,7 @@ cc.Class({
         
         this.node.on('game_action',function(data){
             self.showAction(data.detail);
+            console.log("game_action", data.detail)
         });
         
         this.node.on('hupai',function(data){

@@ -528,7 +528,7 @@ cc.Class({
         });
 
         cc.vv.net.addHandler("chi_notify_push",function(data){
-            console.log('chi_notify_push');
+            console.log('chi_notify_push', data);
             console.log(data);
             var userId = data.userid;
             var si = self.getSeatIndexByID(userId);
