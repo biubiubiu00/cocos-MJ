@@ -34,6 +34,13 @@ cc.Class({
             var data = data.detail;
             self.onPengGangChanged(data);
         });
+
+        this.node.on('chi_notify',function(data){
+            //刷新所有的牌
+            //console.log(data.detail);
+            var data = data.detail;
+            self.onPengGangChanged(data);
+        });
         
         this.node.on('gang_notify',function(data){
             //刷新所有的牌
@@ -119,7 +126,16 @@ cc.Class({
                 this.initPengAndGangs(pengangroot,side,pre,index,mjid,"peng");
                 index++;    
             }    
-        }        
+        }    
+        
+        var chis = seatData.chis;
+        if(chis){
+            for(var i = 0; i < chis.length; ++i){
+                var mjid = chis[i];
+                this.initPengAndGangs(pengangroot,side,pre,index,mjid,"chi");
+                index++;    
+            }    
+        } 
     },
     
     initPengAndGangs:function(pengangroot,side,pre,index,mjid,flag){

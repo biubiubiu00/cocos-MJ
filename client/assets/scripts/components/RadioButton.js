@@ -35,6 +35,7 @@ cc.Class({
     },
     
     refresh:function(){
+        if (!this.target) return
         var targetSprite = this.target.getComponent(cc.Sprite);
         if(this.checked){
             targetSprite.spriteFrame = this.checkedSprite;

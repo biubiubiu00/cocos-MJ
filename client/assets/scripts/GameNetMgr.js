@@ -45,6 +45,7 @@ cc.Class({
             this.seats[i].holds = [];
             this.seats[i].folds = [];
             this.seats[i].pengs = [];
+            this.seats[i].chis = [];
             this.seats[i].angangs = [];
             this.seats[i].diangangs = [];
             this.seats[i].wangangs = [];
@@ -113,6 +114,7 @@ cc.Class({
             s.score = null;
             s.holds = baseInfo.game_seats[i];
             s.pengs = [];
+            s.chis = [];
             s.angangs = [];
             s.diangangs = [];
             s.wangangs = [];
@@ -302,6 +304,9 @@ cc.Class({
                 if(s.wangangs == null){
                     s.wangangs = [];
                 }
+                if(s.chis == null){
+                    s.chis = [];
+                }
                 s.ready = false;
             }
             self.dispatchEvent('game_holds');
@@ -354,6 +359,7 @@ cc.Class({
                 seat.diangangs = sd.diangangs;
                 seat.wangangs = sd.wangangs;
                 seat.pengs = sd.pengs;
+                seat.chis = sd.chis;
                 seat.dingque = sd.que;
                 seat.hued = sd.hued; 
                 seat.iszimo = sd.iszimo;
@@ -520,6 +526,14 @@ cc.Class({
             var si = self.getSeatIndexByID(userId);
             self.doPeng(si,data.pai);
         });
+
+        cc.vv.net.addHandler("chi_notify_push",function(data){
+            console.log('chi_notify_push');
+            console.log(data);
+            var userId = data.userid;
+            var si = self.getSeatIndexByID(userId);
+            self.doChi(si,data.pai, data.chipai);
+        });
         
         cc.vv.net.addHandler("gang_notify_push",function(data){
             console.log('gang_notify_push');
@@ -614,6 +628,28 @@ cc.Class({
         pengs.push(pai);
             
         this.dispatchEvent('peng_notify',seatData);
+    },
+
+    doChi:function(seatIndex,pai, chipai){
+        var seatData = this.seats[seatIndex];
+        //移除手牌
+        if(seatData.holds){
+            var paiAry = chipai.split(',');
+            for(var i = 0; i < 3; ++i){
+                var curPai = paiAry[i];
+                if (curPai == pai) {
+                    continue;
+                }
+                var idx = seatData.holds.indexOf(curPai);
+                seatData.holds.splice(idx,1);
+            }                
+        }
+            
+        //更新碰牌数据
+        var chis = seatData.chis;
+        chis.push(pai);
+            
+        this.dispatchEvent('chi_notify',seatData);
     },
     
     getGangType:function(seatData,pai){

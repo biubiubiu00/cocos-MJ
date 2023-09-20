@@ -22,6 +22,8 @@ cc.Class({
         _hupaiLists:[],
         _playEfxs:[],
         _opts:[],
+        _chiMJOptions:[],
+        _chiOptions:[]
     },
     
     onLoad: function () {
@@ -112,6 +114,18 @@ cc.Class({
         
         var opts = gameChild.getChildByName("ops");
         this._options = opts;
+
+        
+        // 吃牌操作对象 可同时操作的其他action
+        var chiOptions = opts.getChildByName("op_chi");
+        this._chiOptions = chiOptions;
+        // 吃牌适配
+        chiOptions.scaleX *= realwidth/1280;
+        chiOptions.scaleY *= realwidth/1280;  
+        // 吃牌操作对象 MJ
+        var chiMJOptions = chiOptions.getChildByName("options")
+        this._chiMJOptions = chiMJOptions;
+        
         this.hideOptions();
         this.hideChupai();
     },
@@ -407,6 +421,23 @@ cc.Class({
             cc.vv.audioMgr.playSFX("nv/peng.mp3");
             self.hideOptions();
         });
+
+        this.node.on('chi_notify',function(data){    
+            self.hideChupai();
+            
+            var seatData = data.detail;
+            if(seatData.seatindex == cc.vv.gameNetMgr.seatIndex){
+                self.initMahjongs();                
+            }
+            else{
+                self.initOtherMahjongs(seatData);
+            }
+            var localIndex = self.getLocalIndex(seatData.seatindex);
+            // 吃牌的没动画 没音效
+            // self.playEfx(localIndex,"play_peng");
+            // cc.vv.audioMgr.playSFX("nv/peng.mp3");
+            self.hideOptions();
+        });
         
         this.node.on('gang_notify',function(data){
             self.hideChupai();
@@ -496,6 +527,100 @@ cc.Class({
                 child.getChildByName("btnGang").active = false;
                 child.getChildByName("btnHu").active = false;
             }
+            // 同样操作隐藏 吃所有相关内容
+            if (child.name == "op_chi") {
+                // child.active = false;
+                this.hideChiOptions();
+            }
+        }
+    },
+
+    // 隐藏吃牌相关组件 
+    hideChiOptions : function () {
+        this.hideChiMJOptions();
+        this.hideChiOtherOptions();
+    },
+
+    // 隐藏吃 麻将操作组件
+    hideChiMJOptions : function () {
+        var _length = this._chiMJOptions.childrenCount;
+        for (var i = 0; i < _length; i ++) {
+            var child = this._chiMJOptions.children[i];
+            var radioButton = child.getComponent("RadioButton");
+            radioButton.check(i == 0)
+            child.active = false;
+        }
+    },
+
+    // 隐藏吃 其他操作组件
+    hideChiOtherOptions : function () {
+        var _length = this._chiOptions.childrenCount;
+        for (var i = 0; i < _length; i ++) {
+            var child = this._chiOptions.children[i];
+            if (child.name == "op") {
+                child.active = false;
+            }
+        }
+    },
+
+    // 动态设置mj位置
+    setChiMJOptionsPostion : function (count) {
+        var maxPos = -583;
+        var posX = 0;
+        var offset = 60;
+        if (count <= 3) {
+            var child = this._chiOptions.children[count + 1];
+            posX = child.position.x - offset;
+        } else {
+            posX = maxPos;
+        }
+        this._chiMJOptions.setPosition(posX, this._chiMJOptions.position.y);
+    },
+
+    getChiOtherOpsitons : function (data) {
+        var options = [];
+        if (data.gang) {
+            options.push('gang');
+        }
+        if (data.peng) {
+            options.push('peng');
+        }
+        if (data.hu) {
+            options.push('hu');
+        } 
+        if (data.chi) {
+            options.push('chi');
+        } 
+        return options;
+    },
+
+    shouOtherOptionBtn : function (child, name, pai) {
+        var _length = child.childrenCount;
+        for (var i = 0; i < _length; i ++) {
+            var item = child.children[i];
+            if (item.name == name) {
+                item.active = true;
+                item.pai = pai
+            } else {
+                item.active = false;
+            }
+        }
+    },
+
+    // 设置吃牌麻将操作显示
+    setChiMJOptionsData : function (index, data, pai) {
+        if (!data) return;
+        var child = this._chiMJOptions.children[index];
+        child.active = true;
+        var ary = data.split(',');
+        var dataIndex = 0;
+        for (var i = 0; i < child.childrenCount; i ++) {
+            var mj = child.children[i];
+            if (mj.name == "opTarget") {
+                var realPai = Number(ary);
+                dataIndex ++;
+                mj && (mj.getComponent(cc.Sprite).spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID("M_", realPai));
+            }
         }
     },
     
@@ -504,7 +629,37 @@ cc.Class({
             this.hideOptions();
         }
         
-        if(data && (data.hu || data.gang || data.peng)){
+        // 显示吃牌时其他操作按钮
+        if (data && data.chi) {
+            this.hideChiOptions();
+            this._options.active = true;
+            var otherOptions = this.getChiOtherOpsitons(data);
+            for (var i = 0; i < otherOptions.length; i ++) {
+                var option = otherOptions[i];
+                var child = this._chiOptions.children[i + 1];
+                child.active = true;
+                if (option == "gang") {
+                    // 这里只处理一种杠牌 不请吃杠牌数组的实际含义
+                    this.shouOtherOptionBtn(child, "btnGang", data.pai);
+                } else if (option == "peng") {
+                    this.shouOtherOptionBtn(child, "btnPeng", data.pai);
+                } else if (option == "hu") {
+                    this.shouOtherOptionBtn(child, "btnHu", data.pai);
+                } else if (option == "chi") {
+                    this.shouOtherOptionBtn(child, "btnChi", data.chipai);
+                }
+            }   
+
+            this.setChiMJOptionsPostion(otherOptions.length)
+            // 设置可操作的吃牌选择
+            var mjOptions = data.chipai;
+            for (var i = 0; i < mjOptions.length; i ++) {
+                let curData = mjOptions[i];
+                this.setChiMJOptionsData(i, curData, data.pai);
+            }
+
+        } 
+        else if(data && (data.hu || data.gang || data.peng)){
             this._options.active = true;
             if(data.hu){
                 this.addOption("btnHu",data.pai);
@@ -521,6 +676,8 @@ cc.Class({
             }   
         }
     },
+
+
     
     initWanfaLabel:function(){
         var wanfa = cc.find("Canvas/infobar/wanfa").getComponent(cc.Label);
@@ -930,6 +1087,24 @@ cc.Class({
         }
         else if(event.target.name == "btnGuo"){
             cc.vv.net.send("guo");
+        }
+        else if(event.target.name == "btnChi"){
+            // 获取选择吃牌的方式 传给后端
+            var index = this.findSelectChiOption();
+            console.log(index);
+            var paiStr = event.target.pai && event.target.pai[index];
+            cc.vv.net.send("chi", paiStr);
+        }
+    },
+
+    findSelectChiOption : function () {
+        var _length = this._chiMJOptions.childrenCount;
+        for (var i = 0; i < _length; i ++) {
+            var option = this._chiMJOptions.children[i];
+            var radioButton = option.getComponent("RadioButton");
+            if (radioButton.checked) {
+                return i;
+            }
         }
     },
     
